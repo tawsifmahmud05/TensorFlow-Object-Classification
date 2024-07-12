@@ -115,6 +115,10 @@ async function startVideoStream() {
     const video = document.getElementById("video");
     video.srcObject = videoStream;
     video.play();
+    video.addEventListener("loadedmetadata", () => {
+      canvas.width = video.videoWidth / 2;
+      canvas.height = video.videoHeight / 2;
+    });
     // startVideoClassification();
   } catch (error) {
     errorDiv.innerText = "Error accessing video stream. Please try again.";
@@ -146,7 +150,7 @@ function startVideoClassification() {
 
 function stopVideoClassification() {
   stopVideoStream();
-  clearInterval(classifyInterval);
+  // clearInterval(classifyInterval);
   // canvas.style.display = "none";
   resultsDiv.innerHTML = ""; // Clear previous results
   errorDiv.innerHTML = ""; // Clear previous errors
