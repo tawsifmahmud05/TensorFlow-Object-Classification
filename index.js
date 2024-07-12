@@ -10,10 +10,10 @@ const videoButton = document.getElementById("video-button");
 const imageSection = document.getElementById("image-section");
 const videoSection = document.getElementById("video-section");
 
-const startVideoButton = document.getElementById("start-video");
+const captureButton = document.getElementById("capture");
 const video = document.getElementById("video");
-// const canvas = document.getElementById("canvas");
-const stopVideoButton = document.getElementById("stop-video");
+const canvas = document.getElementById("canvas");
+const resetButton = document.getElementById("reset");
 
 let videoStream;
 
@@ -21,9 +21,11 @@ imageButton.addEventListener("click", () => {
   imageSection.style.display = "block";
   videoSection.style.display = "none";
   imageButton.style.display = "none";
+  canvas.style.display = "none";
   videoButton.style.display = "block";
   resultsDiv.innerHTML = ""; // Clear previous results
   errorDiv.innerHTML = ""; // Clear previous errors
+
   stopVideoClassification();
   stopVideoStream();
 });
@@ -84,11 +86,18 @@ function displayResults(predictions) {
     resultsDiv.appendChild(resultDiv);
   });
 }
-startVideoButton.addEventListener("click", () => {
+captureButton.addEventListener("click", () => {
   // startVideoStream();
+  canvas.style.display = "block";
+  capturePhoto();
+  resultsDiv.style.display = "block";
 });
 
-stopVideoButton.addEventListener("click", stopVideoClassification);
+resetButton.addEventListener("click", () => {
+  canvas.style.display = "none";
+  loadingDiv.style.display = "none";
+  resultsDiv.style.display = "none";
+});
 
 function getFacingMode() {
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -106,7 +115,7 @@ async function startVideoStream() {
     const video = document.getElementById("video");
     video.srcObject = videoStream;
     video.play();
-    startVideoClassification();
+    // startVideoClassification();
   } catch (error) {
     errorDiv.innerText = "Error accessing video stream. Please try again.";
   }
@@ -150,4 +159,30 @@ function stopVideoStream() {
   }
   const video = document.getElementById("video");
   video.srcObject = null;
+}
+
+function capturePhoto() {
+  const context = canvas.getContext("2d");
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataURL = canvas.toDataURL("image/png");
+  // img.src = dataURL;
+  // img.style.display = "none";
+  classifyImageFromCanvas();
+}
+
+async function classifyImageFromCanvas() {
+  resultsDiv.innerHTML = ""; // Clear previous results
+  errorDiv.innerHTML = ""; // Clear previous errors
+  loadingDiv.style.display = "block";
+
+  try {
+    const model = await mobilenet.load();
+    const predictions = await model.classify(canvas);
+    displayResults(predictions);
+  } catch (error) {
+    errorDiv.innerText =
+      "Error loading or classifying image. Please try again.";
+  } finally {
+    loadingDiv.style.display = "none";
+  }
 }
