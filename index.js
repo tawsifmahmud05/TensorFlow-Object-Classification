@@ -34,6 +34,7 @@ videoButton.addEventListener("click", () => {
   imageButton.style.display = "block";
   resultsDiv.innerHTML = ""; // Clear previous results
   errorDiv.innerHTML = ""; // Clear previous errors
+  startVideoStream();
 });
 
 fileInput.addEventListener("change", (event) => {
@@ -84,14 +85,27 @@ function displayResults(predictions) {
   });
 }
 startVideoButton.addEventListener("click", () => {
-  startVideoStream();
+  // startVideoStream();
 });
+
 stopVideoButton.addEventListener("click", stopVideoClassification);
+
+function getFacingMode() {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return isMobile ? "environment" : "user";
+}
 
 async function startVideoStream() {
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const constraints = {
+      video: {
+        facingMode: getFacingMode(),
+      },
+    };
+    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById("video");
     video.srcObject = videoStream;
+    video.play();
     startVideoClassification();
   } catch (error) {
     errorDiv.innerText = "Error accessing video stream. Please try again.";
